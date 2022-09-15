@@ -7,7 +7,15 @@ exports.getAccessToken = (user_id) => {
 }
 
 exports.verifyAccessToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
+    // const authHeader = req.headers.authorization;
+    let authHeader = null;
+
+    if (req.headers.authorization) {
+        authHeader = req.headers.authorization
+    } else {
+        authHeader = req.query.accessToken
+    }
+
     const token = authHeader && authHeader.split(" ")[1]
     if (token == null) return res.status(401).json({ status: 401, message: 'Unauthorized, Authorization token not found' })
 

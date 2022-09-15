@@ -33,7 +33,6 @@ router.get('/favorite', JWT.verifyAccessToken, async(req, res) => {
 
     db.query(sql, req.user, (error, rows) => {
         if (error) return console.log(error)
-
         res.status(200).json(rows)
     })
 
@@ -42,13 +41,27 @@ router.get('/favorite', JWT.verifyAccessToken, async(req, res) => {
 // ADD FAVORITE RECIPE
 
 router.post('/favorite', JWT.verifyAccessToken, ifRecipeExist, async(req, res) => {
-    const favorite = [req.user, req.body.recipe_id];
+    const values = [req.user, req.body.recipe_id];
 
     const sql = `INSERT INTO favorite_recipes (user_id, recipe_id) values (?, ?)`;
 
-    db.query(sql, favorite, (err, rows) => {
+    db.query(sql, values, (err, rows) => {
         if (err) return console.log(err)
         res.status(201).json({ rows });
+    })
+
+})
+
+// REMOVE FAVORITE RECIPE
+
+router.delete('/favorite', JWT.verifyAccessToken, async(req, res) => {
+    const values = [req.user, req.query.recipe_id];
+
+    const sql = `DELETE FROM favorite_recipes WHERE user_id = ? and recipe_id = ?`;
+
+    db.query(sql, values, (err, rows) => {
+        if (err) return console.log(err)
+        res.status(200).json({ status: 200, message: `Successfully removed ${req.query.recipe_id}` });
     })
 
 })
