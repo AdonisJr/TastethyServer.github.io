@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const JWT = require('../../jwt/JWT');
 
 // middleware function for checking email
+
 const ifEmailExist = (req, res, next) => {
 
     const sql = `SELECT * FROM users where email = ?`;
@@ -21,7 +22,7 @@ const ifEmailExist = (req, res, next) => {
 
 // GET ALL USERS
 
-router.get('/users', (req, res) => {
+router.get('/users', JWT.verifyAccessToken, (req, res) => {
     const sql = `SELECT user_id,first_name, middle_name, last_name, age, email, role
     FROM users`;
 

@@ -66,7 +66,4 @@ router.delete('/favorite', JWT.verifyAccessToken, async(req, res) => {
 
 })
 
-
-
-
 module.exports = router;
