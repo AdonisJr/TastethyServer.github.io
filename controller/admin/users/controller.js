@@ -21,7 +21,7 @@ const ifEmailExist = (req, res, next) => {
 
 // GET ALL USERS
 
-router.get('/user', (req, res) => {
+router.get('/users', (req, res) => {
     const sql = `SELECT user_id,first_name, middle_name, last_name, age, email, role
     FROM users`;
 
@@ -30,40 +30,6 @@ router.get('/user', (req, res) => {
         res.status(200).json({ status: 200, message: `Successfully retrieve ( ${rows.length} records )`, data: rows })
     })
 })
-
-
-// user Registration API
-
-router.post('/user', ifEmailExist, async(req, res) => {
-    // check if the required parameter are empty
-    if (!req.body.first_name || !req.body.last_name || !req.body.email || !req.body.password)
-        return res.status(422).json({ status: 422, message: 'Parameter Required ( first_name, last_name, email, password )' })
-
-    // hash password usin bcrypt
-    let hash = await bcrypt.hash(req.body.password, 13);
-
-    const credentials = [
-        req.body.first_name,
-        req.body.middle_name,
-        req.body.last_name,
-        req.body.age,
-        req.body.email,
-        req.body.role,
-        hash
-    ]
-
-    const sql = `INSERT INTO users (first_name, middle_name, last_name, age, email, role, password)
-  VALUES (?, ?, ?, ?, ?, ?, ?)`;
-
-    db.query(sql, credentials, (err, rows) => {
-        if (err) {
-            return console.log(err.message);
-        }
-        return res.status(201).json({ status: 201, message: 'Successfully created', data: rows });
-    })
-
-})
-
 
 // User Authentication API
 
@@ -114,7 +80,40 @@ router.post('/login', (req, res) => {
 
 })
 
-// UPDATE
+// user Registration API
+
+router.post('/user', JWT.verifyAccessToken, ifEmailExist, async(req, res) => {
+    // check if the required parameter are empty
+    if (!req.body.first_name || !req.body.last_name || !req.body.email || !req.body.password)
+        return res.status(422).json({ status: 422, message: 'Parameter Required ( first_name, last_name, email, password )' })
+
+    // hash password usin bcrypt
+    let hash = await bcrypt.hash(req.body.password, 13);
+
+    const credentials = [
+        req.body.first_name,
+        req.body.middle_name,
+        req.body.last_name,
+        req.body.age,
+        req.body.email,
+        req.body.role,
+        hash
+    ]
+
+    const sql = `INSERT INTO users (first_name, middle_name, last_name, age, email, role, password)
+  VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+    db.query(sql, credentials, (err, rows) => {
+        if (err) {
+            return console.log(err.message);
+        }
+        return res.status(201).json({ status: 201, message: 'Successfully created', data: rows });
+    })
+
+})
+
+
+// GET, UPDATE, DELETE SPECIFIC USER
 
 router.route('/user/:user_id')
     .get(JWT.verifyAccessToken, (req, res) => {
@@ -126,7 +125,7 @@ router.route('/user/:user_id')
             res.status(200).json({ status: 200, message: 'Successfully retrieved', data: rows })
         })
     })
-    .put((req, res) => {
+    .put(JWT.verifyAccessToken, (req, res) => {
         if (!req.body.first_name || !req.body.last_name || !req.body.email)
             return res.status(422).json({ status: 422, message: 'Parameter Required ( first_name, last_name, email )' })
 
@@ -148,7 +147,7 @@ router.route('/user/:user_id')
         })
 
     })
-    .delete((req, res) => {
+    .delete(JWT.verifyAccessToken, (req, res) => {
         const sql = `DELETE FROM users where user_id = ?`;
 
         db.query(sql, req.params.user_id, (err, rows) => {
